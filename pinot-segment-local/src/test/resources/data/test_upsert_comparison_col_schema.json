@@ -1,0 +1,29 @@
+{
+  "schemaName": "test_pinot_table",
+  "dimensionFieldSpecs": [
+    {
+      "name": "event_id",
+      "dataType": "STRING"
+    },
+    {
+      "name": "description",
+      "dataType": "STRING"
+    },
+    {
+      "name": "offset",
+      "dataType": "LONG"
+    },
+    {
+      "name": "outOfOrderRecordColumn",
+      "dataType": "BOOLEAN"
+    }
+  ],
+  "timeFieldSpec": {
+    "incomingGranularitySpec": {
+      "name": "secondsSinceEpoch",
+      "dataType": "LONG",
+      "timeType": "SECONDS"
+    }
+  },
+  "primaryKeyColumns": ["event_id"]
+}

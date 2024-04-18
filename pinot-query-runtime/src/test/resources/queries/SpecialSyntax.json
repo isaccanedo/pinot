@@ -1,0 +1,115 @@
+{
+  "special_syntax": {
+    "tables": {
+      "tbl1" : {
+        "schema": [
+          {"name": "col1", "type": "STRING"},
+          {"name": "col2", "type": "STRING"},
+          {"name": "col3", "type": "INT"}
+        ],
+        "inputs": [
+          ["foo", "alice", 1],
+          ["bar", "bob", 2]
+        ]
+      },
+      "tbl2" : {
+        "schema": [
+          {"name": "col1", "type": "STRING"},
+          {"name": "col2", "type": "STRING"},
+          {"name": "col3", "type": "INT"}
+        ],
+        "inputs": [
+          ["foo", "bob", 3],
+          ["alice", "alice", 4]
+        ]
+      },
+      "tbl3" : {
+        "schema": [
+          {"name": "dash-column", "type": "STRING"},
+          {"name": "dot.column", "type": "INT"}
+        ],
+        "inputs": [
+          ["foo", 1],
+          ["bar", 2]
+        ]
+      }
+    },
+    "queries": [
+      {
+        "description": "test join with using clause",
+        "sql": "SELECT {tbl1}.col1, {tbl2}.col3 FROM {tbl1} JOIN {tbl2} USING (col1)",
+        "outputs": [
+          ["foo", 3]
+        ]
+      },
+      {
+        "description": "test join with using clause but join with columns not being selected",
+        "sql": "SELECT {tbl1}.col1, {tbl2}.col3 FROM {tbl1} JOIN {tbl2} USING (col2)",
+        "outputs": [
+          ["bar", 3],
+          ["foo", 4]
+        ]
+      },
+      {
+        "description": "test scalar function with STD SQL operator, and scalar function exactly match should be found properly",
+        "sql": "SELECT upper(col1), roundDecimal(col3_r), add(plus(CAST(col3_l AS DOUBLE), cast(col3_r AS DOUBLE)), cast(10 AS DOUBLE)) FROM (SELECT {tbl1}.col1 AS col1, {tbl1}.col3 AS col3_l, {tbl2}.col3 AS col3_r FROM {tbl1} JOIN {tbl2} USING (col2))",
+        "outputs": [
+          ["BAR", 3, 15.0],
+          ["FOO", 4, 15.0]
+        ]
+      },
+      {
+        "description": "test scalar function with STD SQL operator, and scalar function without STD SQL operator can be found properly",
+        "sql": "SELECT UpPeR(col1), round_deCiMal(col3_r), aDD(pluS(CAST(col3_l AS DOUBLE), CAST(col3_r AS DOUBLE)), CAST(10 AS DOUBLE)) FROM (SELECT {tbl1}.col1 AS col1, {tbl1}.col3 AS col3_l, {tbl2}.col3 AS col3_r FROM {tbl1} JOIN {tbl2} USING (col2))",
+        "outputs": [
+          ["BAR", 3, 15.0],
+          ["FOO", 4, 15.0]
+        ]
+      },
+      {
+        "description": "test scalar function with STD SQL operator, and scalar function without STD SQL operator can be found properly",
+        "sql": "SELECT UpPeR(col1), round_deCiMal(col3), pluS(CAST(col3 AS DOUBLE), CAST(10 AS DOUBLE)) FROM {tbl1}",
+        "outputs": [
+          ["BAR", 2, 12.0],
+          ["FOO", 1, 11.0]
+        ]
+      },
+      {
+        "description": "test agg function with STD SQL operator works properly",
+        "sql": "SELECT sUm(col3_r), AvG(col3_r), MAX(PLUS(Add(CAST(col3_l AS DOUBLE), CAST(col3_r AS DOUBLE)), CAST(10 AS DOUBLE))) FROM (SELECT {tbl1}.col1 AS col1, {tbl1}.col3 AS col3_l, {tbl2}.col3 AS col3_r FROM {tbl1} JOIN {tbl2} USING (col2))",
+        "outputs": [
+          [7, 3.5, 15.0]
+        ]
+      },
+      {
+        "description": "test scalar function with STD SQL operator, and scalar function without STD SQL operator can be found properly",
+        "sql": "SELECT sUm(col3), AvG(col3), MAX(pluS(CAST(col3 AS DOUBLE), CAST(10 AS DOUBLE))) FROM {tbl1}",
+        "outputs": [
+          [3, 1.5, 12.0]
+        ]
+      },
+      {
+        "description": "test explicit escape column name ",
+        "sql": "SELECT \"dash-column\", \"dot.column\" FROM {tbl3} WHERE \"dot.column\" > 1",
+        "outputs": [
+          ["bar", 2]
+        ]
+      },
+      {
+        "description": "test explicit escape column name with all possible single-table select syntax",
+        "sql": "SELECT \"dash-column\", COUNT(*) FROM {tbl3} WHERE \"dash-column\" != 'foo' GROUP BY \"dash-column\" HAVING SUM(\"dot.column\") > 1 ORDER BY 2",
+        "outputs": [
+          ["bar", 1]
+        ]
+      },
+      {
+        "description": "test explicit escape column name used after the with table and sub query",
+        "sql": "WITH \"t-a-b-l-e\" AS (SELECT * FROM {tbl3} WHERE \"dash-column\" != 'foo') SELECT \"t-a-b-l-e\".\"dash-column\", COUNT(*) FROM {tbl3} AS tbl LEFT JOIN \"t-a-b-l-e\" ON tbl.\"dot.column\" = \"t-a-b-l-e\".\"dot.column\" GROUP BY 1 ORDER BY SUM(\"t-a-b-l-e\".\"dot.column\")",
+        "outputs": [
+          ["bar", 1],
+          [null, 1]
+        ]
+      }
+    ]
+  }
+}

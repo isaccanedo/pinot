@@ -1,0 +1,34 @@
+{
+  "tableName": "meetupRsvpComplexType",
+  "tableType": "REALTIME",
+  "tenants": {},
+  "segmentsConfig": {
+    "timeColumnName": "mtime",
+    "retentionTimeUnit": "DAYS",
+    "retentionTimeValue": "1",
+    "replication": "1"
+  },
+  "tableIndexConfig": {},
+  "ingestionConfig": {
+    "streamIngestionConfig": {
+      "streamConfigMaps": [
+        {
+          "streamType": "kafka",
+          "stream.kafka.topic.name": "meetupRSVPComplexTypeEvents",
+          "stream.kafka.decoder.class.name": "org.apache.pinot.plugin.stream.kafka.KafkaJSONMessageDecoder",
+          "stream.kafka.consumer.factory.class.name": "org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory",
+          "stream.kafka.zk.broker.url": "localhost:2191/kafka",
+          "stream.kafka.broker.list": "localhost:19092"
+        }
+      ]
+    },
+    "complexTypeConfig": {
+      "fieldsToUnnest": [
+        "group.group_topics"
+      ]
+    }
+  },
+  "metadata": {
+    "customConfigs": {}
+  }
+}
